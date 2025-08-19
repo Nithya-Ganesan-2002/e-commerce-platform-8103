@@ -16,8 +16,9 @@ Common flows:
 1) First time setup (no migrations yet):
    - Copy `.env.example` to `.env` and fill values.
    - `npm run prisma:generate`
-   - `npm run db:init`  (runs `prisma migrate dev --name init`)
+   - `npm run db:init`  (attempts `prisma migrate dev --name init`, and if permissions prevent shadow DB creation, it falls back to `prisma db push` to create tables)
 
 2) Subsequent deployments (migrations committed):
    - Ensure `.env` has `DATABASE_URL`
    - `npm run prisma:migrate`  (runs `prisma migrate deploy`)
+   - If your environment does not allow `CREATE DATABASE` (shadow DB), you can continue using `prisma db push` for schema updates, but note it won’t create migration files.

@@ -114,7 +114,15 @@ function main() {
     } else {
       console.log('[prisma/init] No migrations found. Generating and applying initial migration...');
       // Generate and apply initial migration from schema
-      runPrisma(['migrate', 'dev', '--name', 'init']);
+      try {
+        runPrisma(['migrate', 'dev', '--name', 'init']);
+      } catch (e) {
+        // If migrate dev fails due to shadow DB or permissions, fallback to db push to at least create tables.
+        console.warn(
+          '[prisma/init] `prisma migrate dev` failed. Falling back to `prisma db push` to synchronize schema without migrations.'
+        );
+        runPrisma(['db', 'push', '--accept-data-loss']);
+      }
     }
 
     console.log('[prisma/init] Done.');
