@@ -1,14 +1,39 @@
 const express = require('express');
 const healthController = require('../controllers/health');
 
+const authRoutes = require('./auth');
+const productRoutes = require('./products');
+const cartRoutes = require('./cart');
+const checkoutRoutes = require('./checkout');
+
 const router = express.Router();
-// Health endpoint
+
+/**
+ * @swagger
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Health
+ *   - name: Auth
+ *   - name: Products
+ *   - name: Cart
+ *   - name: Checkout
+ */
 
 /**
  * @swagger
  * /:
  *   get:
  *     summary: Health endpoint
+ *     tags: [Health]
  *     responses:
  *       200:
  *         description: Service health check passed
@@ -31,5 +56,12 @@ const router = express.Router();
  *                   example: development
  */
 router.get('/', healthController.check.bind(healthController));
+
+// Mount feature routes
+router.use('/auth', authRoutes);
+router.use('/products', productRoutes);
+router.use('/cart', cartRoutes);
+router.use('/checkout', checkoutRoutes);
+router.use('/', checkoutRoutes); // exposes /orders endpoints
 
 module.exports = router;

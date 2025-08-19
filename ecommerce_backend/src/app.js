@@ -1,25 +1,43 @@
 const cors = require('cors');
 const express = require('express');
+const dotenv = require('dotenv');
 const routes = require('./routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../swagger');
+
+dotenv.config();
 
 // Initialize express app
 const app = express();
 
 app.use(cors({
-  origin: '*',
+  origin: process.env.CORS_ORIGIN || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.set('trust proxy', true);
-app.use('/docs', swaggerUi.serve, (req, res, next) => {
-  const host = req.get('host');           // may or may not include port
-  let protocol = req.protocol;          // http or https
 
+// OpenAPI JSON endpoint
+app.get('/openapi.json', (req, res) => {
+  const host = req.get('host');
+  let protocol = req.protocol;
   const actualPort = req.socket.localPort;
   const hasPort = host.includes(':');
-  
+  const needsPort = !hasPort && ((protocol === 'http' && actualPort !== 80) || (protocol === 'https' && actualPort !== 443));
+  const fullHost = needsPort ? `${host}:${actualPort}` : host;
+  protocol = req.secure ? 'https' : protocol;
+  return res.json({
+    ...swaggerSpec,
+    servers: [{ url: `${protocol}://${fullHost}` }],
+  });
+});
+
+app.use('/docs', swaggerUi.serve, (req, res, next) => {
+  const host = req.get('host');
+  let protocol = req.protocol;
+  const actualPort = req.socket.localPort;
+  const hasPort = host.includes(':');
+
   const needsPort =
     !hasPort &&
     ((protocol === 'http' && actualPort !== 80) ||
@@ -46,10 +64,14 @@ app.use('/', routes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    status: 'error',
-    message: 'Internal Server Error',
+  const status = err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  if (process.env.NODE_ENV !== 'test') {
+    console.error(err.stack || err);
+  }
+  res.status(status).json({
+    success: false,
+    message,
   });
 });
 
