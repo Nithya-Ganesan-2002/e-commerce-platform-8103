@@ -9,9 +9,11 @@ Key endpoints:
 Getting started:
 1) Copy .env.example to .env and fill values (JWT_SECRET, DB credentials).
 2) Install deps: npm install
-3) Generate Prisma client and run migrations:
+3) Generate Prisma client and initialize database schema:
+   - Ensure .env is present (copy .env.example to .env and fill values)
+   - IMPORTANT: Prisma CLI requires DATABASE_URL in env. Either set DATABASE_URL directly or set MYSQL_URL, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB, MYSQL_PORT and the init script will compose DATABASE_URL.
    - npm run prisma:generate
-   - npm run prisma:dev  (creates DB schema in dev and tracks migrations)
+   - npm run db:init  (creates initial migration if missing and applies it, or deploys existing migrations)
 4) Seed data: npm run db:seed
 5) Start server:
    - npm run dev  (hot reload)

@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "db:init": "node prisma/init.js",
     "db:seed": "node prisma/seed.js",
     "openapi:generate": "node generate_openapi.js"
   },
