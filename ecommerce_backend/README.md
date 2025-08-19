@@ -23,7 +23,9 @@ Environment variables:
 - MYSQL_URL, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB, MYSQL_PORT
 - JWT_SECRET
 - PAYMENT_PROVIDER, PAYMENT_API_KEY (not used in code except as integration placeholder)
-- CORS_ORIGIN
+- CORS_ORIGIN (optional; if not set, backend reflects request Origin for CORS)
+  Example:
+    CORS_ORIGIN=https://vscode-internal-10674-qa.qa01.cloud.kavia.ai:3000
 
 Payments:
 - checkoutService contains a payment integration point. Replace the stub with a call to your provider and save provider reference in paymentRef.

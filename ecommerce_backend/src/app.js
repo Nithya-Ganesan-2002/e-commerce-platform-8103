@@ -10,11 +10,31 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
+/**
+ * CORS configuration:
+ * - If CORS_ORIGIN is set, use that exact origin.
+ * - Otherwise, reflect the request's Origin header to support the current frontend host.
+ */
+const allowOrigin = process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.trim() !== ''
+  ? process.env.CORS_ORIGIN.trim()
+  : true; // reflect request origin
+
+app.use((req, res, next) => {
+  res.header('Vary', 'Origin');
+  next();
+});
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: allowOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  optionsSuccessStatus: 204
 }));
+
+// Handle preflight quickly
+app.options('*', cors());
+
 app.set('trust proxy', true);
 
 // OpenAPI JSON endpoint
