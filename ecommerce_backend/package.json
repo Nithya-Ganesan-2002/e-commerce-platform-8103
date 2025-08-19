@@ -13,6 +13,7 @@
     "prisma:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:init": "node prisma/init.js",
+    "db:push": "node prisma/push.js",
     "db:seed": "node prisma/seed.js",
     "openapi:generate": "node generate_openapi.js"
   },
