@@ -1,9 +1,8 @@
 const express = require('express');
-const CheckoutController = require('../controllers/checkoutController');
+const controller = require('../controllers/checkoutController');
 const { authRequired } = require('../middleware/auth');
 
 const router = express.Router();
-const controller = new CheckoutController();
 
 /**
  * @swagger

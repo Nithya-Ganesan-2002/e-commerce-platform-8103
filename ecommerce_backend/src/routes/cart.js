@@ -1,9 +1,8 @@
 const express = require('express');
-const CartController = require('../controllers/cartController');
+const controller = require('../controllers/cartController');
 const { authRequired } = require('../middleware/auth');
 
 const router = express.Router();
-const controller = new CartController();
 
 /**
  * @swagger
