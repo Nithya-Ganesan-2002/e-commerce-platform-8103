@@ -23,23 +23,50 @@ const fs = require('fs');
 require('dotenv').config();
 
 function ensureDatabaseUrl() {
+  // If DATABASE_URL is explicitly provided, use it.
   if (process.env.DATABASE_URL && process.env.DATABASE_URL.trim() !== '') {
-    return process.env.DATABASE_URL;
+    return process.env.DATABASE_URL.trim();
   }
-  const host = process.env.MYSQL_URL;
+
+  // Fallback to MYSQL_* variables to compose DATABASE_URL.
+  let host = process.env.MYSQL_URL;
   const user = process.env.MYSQL_USER;
   const pass = process.env.MYSQL_PASSWORD;
   const db = process.env.MYSQL_DB;
-  const port = process.env.MYSQL_PORT || '3306';
+  const port = String(process.env.MYSQL_PORT || '3306');
 
   if (!host || !user || !pass || !db) {
     throw new Error(
       'Missing database configuration. Provide DATABASE_URL or MYSQL_URL, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB, MYSQL_PORT.'
     );
   }
+
+  // If host accidentally contains a full URL (e.g., mysql://localhost:5000/mydb),
+  // parse and extract host/db/port to avoid malformed URLs.
+  try {
+    if (/^mysql:\/\//i.test(host)) {
+      const u = new URL(host);
+      // Only take host and port from the URL if present
+      host = u.hostname;
+      // If DB name missing from MYSQL_DB, try to infer from URL pathname
+      if (!db && u.pathname && u.pathname.length > 1) {
+        process.env.MYSQL_DB = u.pathname.replace(/^\//, '');
+      }
+      if (!process.env.MYSQL_PORT && u.port) {
+        process.env.MYSQL_PORT = u.port;
+      }
+    }
+  } catch (_e) {
+    // If URL parsing fails, proceed with the original host; Prisma will error if invalid.
+  }
+
   const encUser = encodeURIComponent(user);
   const encPass = encodeURIComponent(pass);
-  const url = `mysql://${encUser}:${encPass}@${host}:${port}/${db}`;
+  const finalHost = host;
+  const finalPort = String(process.env.MYSQL_PORT || port);
+  const finalDb = process.env.MYSQL_DB || db;
+
+  const url = `mysql://${encUser}:${encPass}@${finalHost}:${finalPort}/${finalDb}`;
   process.env.DATABASE_URL = url;
   return url;
 }
@@ -59,10 +86,22 @@ function runPrisma(args) {
   }
 }
 
+function safeMaskUrl(url) {
+  try {
+    const u = new URL(url);
+    // mask username/password if present
+    const maskedAuth =
+      u.username || u.password ? `${u.username ? '***' : ''}${u.password ? ':***' : ''}@` : '';
+    return `${u.protocol}//${maskedAuth}${u.host}${u.pathname}`;
+  } catch {
+    return String(url).replace(/:\S+@/, ':******@');
+  }
+}
+
 function main() {
   try {
     const url = ensureDatabaseUrl();
-    console.log(`[prisma/init] Using DATABASE_URL=${url.replace(/:\\S+@/, ':******@')}`);
+    console.log(`[prisma/init] Using DATABASE_URL=${safeMaskUrl(url)}`);
 
     const migrationsDir = path.resolve(__dirname, 'migrations');
     const hasMigrations =

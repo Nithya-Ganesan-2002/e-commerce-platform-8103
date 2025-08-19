@@ -6,8 +6,11 @@
 - `prisma migrate dev` creates a new migration from your current `schema.prisma` and applies it to the database.
   Use this during development to create the initial migration.
 
-- DATABASE_URL must be available to Prisma CLI. Set it in `.env` or provide `MYSQL_URL`, `MYSQL_USER`,
-  `MYSQL_PASSWORD`, `MYSQL_DB`, `MYSQL_PORT` and the `prisma/init.js` helper will compose it.
+- DATABASE_URL must be available to Prisma CLI. Prefer setting it directly in `.env`:
+  Example: DATABASE_URL="mysql://USER:PASS@HOST:PORT/DB"
+  Alternatively, provide `MYSQL_URL`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DB`, `MYSQL_PORT`
+  and the `prisma/init.js` helper will compose it. Note: If your environment injects `MYSQL_URL`
+  as a full URL (e.g., mysql://host:port/db), the init script will parse it and extract host/port/db.
 
 Common flows:
 1) First time setup (no migrations yet):
