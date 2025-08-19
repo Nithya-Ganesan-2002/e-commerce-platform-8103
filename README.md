@@ -1,1 +1,3 @@
-# e-commerce-platform-8103
+# Project Repository
+
+This is the initial README file for the project.
